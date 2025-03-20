@@ -1,0 +1,84 @@
+[build-system]
+requires = [
+    "setuptools>=64",
+    "setuptools_scm[toml]>=8",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "l2sl"
+description = "ADDME"
+license = {file = "LICENSE"}
+authors = [
+    { name = "Philip Meier", email = "github.pmeier@posteo.de" },
+]
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.11"
+dynamic = ["version"]
+dependencies = [
+    "structlog>=25.2.0",
+]
+
+[project.urls]
+Repository = "https://github.com/pmeier/l2sl"
+
+[tool.setuptools_scm]
+write_to = "src/l2sl/_version.py"
+version_scheme = "release-branch-semver"
+local_scheme = "node-and-date"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I001"
+]
+# Ignore line too long since ruff will fix everything that is fixable
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# ignore unused imports and imports not at the top of the file in __init__.py files
+"__init__.py" = ["F401", "E402"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra --tb=short"
+testpaths = [
+    "tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::ResourceWarning",
+]
+xfail_strict = true
+
+[tool.mypy]
+files = "src/l2sl"
+
+show_error_codes = true
+pretty = true
+
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+allow_redefinition = true
+no_implicit_optional = true
+
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+warn_return_any = true
+warn_unused_configs = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+]
