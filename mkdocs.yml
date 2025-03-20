@@ -1,0 +1,42 @@
+site_name: l2sl
+
+repo_url: https://github.com/Quansight/ls2l
+copyright: Copyright &copy; 2025 Philip Meier
+extra:
+  social:
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/l2sl
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search
+    - search.suggest
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - mdx_truly_sane_lists
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            show_bases: false
+            unwrap_annotated: true
+          inventories:
+            - https://docs.python.org/3/objects.inv
+            - https://www.structlog.org/en/stable/objects.inv
+
+watch:
+  - src/l2sl
