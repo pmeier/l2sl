@@ -1,0 +1,27 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    tags: ['v[0-9]+\.[0-9]+\.[0-9]+']
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
+
+      - name: Build binary and source distribution
+        run: uv build
+
+      - name: Publish to PyPI on tag
+        if: ${{ github.ref_type == 'tag' }}
+        run: uv publish --no-progress --trusted-publishing=always dist/*

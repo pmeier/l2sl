@@ -25,6 +25,12 @@ dependencies = [
     "structlog>=25.2.0",
 ]
 
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+]
+
 [project.urls]
 Repository = "https://github.com/pmeier/l2sl"
 
@@ -76,9 +82,3 @@ warn_unused_ignores = true
 
 warn_return_any = true
 warn_unused_configs = true
-
-[dependency-groups]
-dev = [
-    "mypy>=1.15.0",
-    "pre-commit>=4.2.0",
-]
