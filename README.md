@@ -42,6 +42,6 @@ l2sl.configure_stdlib_logging()
 
 ## How do I learn more?
 
-Please have a look at the [documentation]().
+Please have a look at the [documentation](https://l2sl.readthedocs.io/en/stable/).
 
 [`structlog`]: https://www.structlog.org/
