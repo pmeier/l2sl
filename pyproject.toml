@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "l2sl"
-description = "ADDME"
+description = "logging to structured logging"
 license = {file = "LICENSE"}
 authors = [
     { name = "Philip Meier", email = "github.pmeier@posteo.de" },
@@ -37,6 +37,7 @@ dev = [
 
 [project.urls]
 Repository = "https://github.com/pmeier/l2sl"
+Documentation = "https://l2sl.readthedocs.io/en/stable/"
 
 [tool.setuptools_scm]
 write_to = "src/l2sl/_version.py"
