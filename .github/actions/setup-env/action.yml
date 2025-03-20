@@ -1,0 +1,14 @@
+name: setup-env
+description: "Setup environment"
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - shell: bash
+      run: |
+        # Install project and requirements
+        uv sync --link-mode copy --frozen
