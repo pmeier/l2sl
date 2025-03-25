@@ -25,13 +25,7 @@ def uvicorn_running(
     return groups["event"], {"host": host, "port": port}
 
 
-uvicorn_access = register_builtin_parser("uvicorn.access", RegexpEventParser())
-
-
-@uvicorn_access.register_event_handler(r".*")
-def request(
-    groups: dict[str, str], record: logging.LogRecord
-) -> tuple[str, dict[str, Any]]:
+def uvicorn_access(event: str, record: logging.LogRecord) -> tuple[str, dict[str, Any]]:
     assert record.args is not None
     origin, method, endpoint, protocol_version, status_code = record.args
     return "request", {
