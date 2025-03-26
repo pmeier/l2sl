@@ -1,24 +1,20 @@
-import functools
 import logging
 import logging.config
 from collections.abc import Collection
 
 import structlog
 
+from ._utils import LoggerSelector
+
 
 class RecordForwarder(logging.Handler):
     def __init__(self, *, forward: Collection[str]) -> None:
         super().__init__()
-        # TODO: validate this
-        self._forward = list(forward)
+        self._logger_selector = LoggerSelector(forward)
         self._logger = structlog.get_logger()
 
-    @functools.cache
-    def _should_forward(self, name: str) -> bool:
-        return any(name.startswith(n) for n in self._forward)
-
     def emit(self, record: logging.LogRecord) -> None:
-        if self._should_forward(record.name):
+        if self._logger_selector(record.name):
             self._logger.log(
                 record.levelno,
                 record.msg,

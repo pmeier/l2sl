@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from ._parsers import Parser, builtin_parsers
+from ._utils import LoggerSelector
 
 
 class StdlibRecordParser:
@@ -26,6 +27,8 @@ class StdlibRecordParser:
 
         self._fallback = fallback
 
+        self._logger_selector = LoggerSelector(self._parsers.keys())
+
         if not isinstance(include_logger_name, str):
             include_logger_name = "logger" if include_logger_name else ""
         self._include_logger_name = include_logger_name
@@ -38,7 +41,13 @@ class StdlibRecordParser:
         if record is None:
             return event_dict
 
-        parser = self._parsers.get(record.name, self._fallback)
+        logger = record.name
+        selected_logger = self._logger_selector(logger)
+        parser = (
+            self._parsers[selected_logger]
+            if selected_logger is not None
+            else self._fallback
+        )
 
         event, values = parser(event_dict.pop("event"), record)
 
@@ -46,6 +55,6 @@ class StdlibRecordParser:
         event_dict.update(values)
 
         if self._include_logger_name:
-            event_dict[self._include_logger_name] = record.name
+            event_dict[self._include_logger_name] = logger
 
         return event_dict
