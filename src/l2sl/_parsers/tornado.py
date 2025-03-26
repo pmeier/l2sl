@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, cast
 
 from ._core import register_builtin_parser
 from ._regexp import RegexpEventParser
@@ -13,5 +13,6 @@ tornado_access = register_builtin_parser(RegexpEventParser(), logger="tornado.ac
 def event_handler(
     groups: dict[str, str], record: logging.LogRecord
 ) -> tuple[str, dict[str, Any]]:
-    groups["elapsed_time"] = float(groups["elapsed_time"]) * 1e-3  # type: ignore[assignment]
+    values = cast(dict[str, Any], groups)
+    values["elapsed_time"] = float(values["elapsed_time"]) * 1e-3
     return "request", groups
