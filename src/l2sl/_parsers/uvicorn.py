@@ -4,7 +4,7 @@ from typing import Any
 from ._core import register_builtin_parser
 from ._regexp import RegexpEventParser
 
-uvicorn_error = register_builtin_parser("uvicorn.error", RegexpEventParser())
+uvicorn_error = register_builtin_parser(RegexpEventParser(), logger="uvicorn.error")
 
 
 @uvicorn_error.register_event_handler(r"(?P<event>(Started|Finished) server process)")
@@ -25,6 +25,7 @@ def uvicorn_running(
     return groups["event"], {"host": host, "port": port}
 
 
+@register_builtin_parser(logger="uvicorn.access")
 def uvicorn_access(event: str, record: logging.LogRecord) -> tuple[str, dict[str, Any]]:
     assert record.args is not None
     origin, method, endpoint, protocol_version, status_code = record.args
