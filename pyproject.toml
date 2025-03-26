@@ -50,8 +50,13 @@ select = [
     "F",
     "I001"
 ]
-# Ignore line too long since ruff will fix everything that is fixable
-ignore = ["E501"]
+
+ignore = [
+    # Ignore line too long since ruff will fix everything that is fixable
+    "E501",
+    # Ambigiuous variable name
+    "E741",
+]
 
 [tool.ruff.lint.per-file-ignores]
 # ignore unused imports and imports not at the top of the file in __init__.py files
