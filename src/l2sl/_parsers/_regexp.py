@@ -5,6 +5,8 @@ import secrets
 from collections.abc import Mapping
 from typing import Any, Callable
 
+from l2sl._utils import default_fallback_parser
+
 from ._core import Parser
 
 RegexpEventHandler = Callable[
@@ -70,16 +72,8 @@ class _RegexpEventParser:
 
 
 class RegexpEventParser:
-    def __init__(self, fallback: Parser | None = None) -> None:
+    def __init__(self, fallback: Parser = default_fallback_parser) -> None:
         self._event_handlers: dict[str, tuple[str, RegexpEventHandler]] = {}
-
-        if fallback is None:
-
-            def fallback(
-                event: str, record: logging.LogRecord
-            ) -> tuple[str, dict[str, Any]]:
-                return event, {}
-
         self._fallback = fallback
 
     def register_event_handler(

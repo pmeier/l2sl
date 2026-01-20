@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from ._parsers import Parser, builtin_parsers
-from ._utils import LoggerSelector
+from ._utils import LoggerSelector, default_fallback_parser
 
 
 class StdlibRecordParser:
@@ -11,22 +11,14 @@ class StdlibRecordParser:
         self,
         *,
         parsers: dict[str, Parser] | None = None,
-        fallback: Parser | None = None,
+        fallback: Parser = default_fallback_parser,
         include_logger_name: bool | str = True,
     ) -> None:
         if parsers is None:
             parsers = builtin_parsers()
         self._parsers = parsers
 
-        if fallback is None:
-
-            def fallback(
-                event: str, record: logging.LogRecord
-            ) -> tuple[str, dict[str, Any]]:
-                return event, {}
-
         self._fallback = fallback
-
         self._logger_selector = LoggerSelector(self._parsers.keys())
 
         if not isinstance(include_logger_name, str):
