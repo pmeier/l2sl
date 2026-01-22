@@ -1,11 +1,11 @@
 __all__ = ["LoggerSelector"]
 
 import functools
-from collections.abc import Collection
+from collections.abc import Iterable
 
 
 class LoggerSelector:
-    def __init__(self, available_loggers: Collection[str]) -> None:
+    def __init__(self, available_loggers: Iterable[str]) -> None:
         self._available_loggers = [l.split(".") for l in available_loggers]
 
     @functools.lru_cache()

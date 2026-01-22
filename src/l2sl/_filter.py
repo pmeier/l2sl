@@ -60,8 +60,16 @@ class SimpleRecordFilter:
         cls,
         loggers: Mapping[str, LogLevel] | Collection[str],
         *,
-        default_level: LogLevel = "info",
+        default_level: LogLevel | None = None,
     ) -> Self:
+        if isinstance(loggers, Mapping) and default_level is not None:
+            raise ValueError(
+                "when passing loggers as mapping, the default_level must not be set"
+            )
+
+        if default_level is None:
+            default_level = "info"
+
         return cls._new(loggers=loggers, default_level=default_level, mode="include")
 
     @classmethod
@@ -117,22 +125,16 @@ class SimpleRecordFilter:
     def __init__(self, *, levels: defaultdict[str | None, int], mode: _Mode) -> None:
         self._levels = levels
         self._mode = mode
-        self._logger_selector = LoggerSelector(levels.keys())
+        self._logger_selector = LoggerSelector(l for l in levels.keys() if l)
 
     def __call__(self, record: logging.LogRecord) -> bool:
         logger = self._logger_selector(record.name)
         match self._mode:
             case "include":
-                return logger is not None and self._levels[logger] <= record.levelno
+                if logger is None:
+                    return False
             case "exclude":
-                return logger is None
+                if logger is not None:
+                    return False
 
-        # what if exclude is foo.bar
-        # and we have a level value for foo
-
-        if (self._mode == "include" and logger is None) or (
-            self._mode == "exclude" and logger is not None
-        ):
-            return False
-
-        return
+        return self._levels[logger] <= record.levelno
