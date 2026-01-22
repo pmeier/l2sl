@@ -11,4 +11,4 @@ runs:
     - shell: bash
       run: |
         # Install project and requirements
-        uv sync --link-mode copy --frozen
+        uv sync --link-mode copy --locked

@@ -34,6 +34,8 @@ dev = [
     "mkdocstrings[python]>=0.29.0",
     "mypy>=1.15.0",
     "pre-commit>=4.2.0",
+    "pytest>=9",
+    "pytest-coverage>=0.0",
 ]
 
 [project.urls]
@@ -63,9 +65,9 @@ ignore = [
 # ignore unused imports and imports not at the top of the file in __init__.py files
 "__init__.py" = ["F401", "E402"]
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra --tb=short"
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "--tb=short"]
 testpaths = [
     "tests",
 ]
