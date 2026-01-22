@@ -1,6 +1,6 @@
 import pytest
 
-import l2sl._utils as utils
+from l2sl._select import LoggerSelector
 
 
 @pytest.mark.parametrize(
@@ -14,5 +14,5 @@ import l2sl._utils as utils
     ],
 )
 def test_logger_selector(available_loggers, logger, expected):
-    logger_selector = utils.LoggerSelector(available_loggers)
+    logger_selector = LoggerSelector(available_loggers)
     assert logger_selector(logger) == expected

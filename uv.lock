@@ -326,6 +326,7 @@ name = "l2sl"
 source = { editable = "." }
 dependencies = [
     { name = "structlog" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
 [package.dev-dependencies]
@@ -341,7 +342,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "structlog", specifier = ">=25.2.0" }]
+requires-dist = [
+    { name = "structlog", specifier = ">=25.2.0" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
 
 [package.metadata.requires-dev]
 dev = [

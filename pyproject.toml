@@ -24,6 +24,7 @@ requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
     "structlog>=25.2.0",
+    "typing-extensions; python_version < '3.11'"
 ]
 
 [dependency-groups]
@@ -61,13 +62,10 @@ ignore = [
     "E741",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-# ignore unused imports and imports not at the top of the file in __init__.py files
-"__init__.py" = ["F401", "E402"]
-
 [tool.pytest]
 minversion = "9.0"
 addopts = ["-ra", "--tb=short"]
+
 testpaths = [
     "tests",
 ]

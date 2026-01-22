@@ -1,3 +1,5 @@
+__all__ = ["RegexpEventHandler", "RegexpEventParser"]
+
 import functools
 import logging
 import re
@@ -5,16 +7,14 @@ import secrets
 from collections.abc import Mapping
 from typing import Any, Callable
 
-from l2sl._utils import default_fallback_parser
-
-from ._core import Parser
+from ._core import Parser, default_fallback_parser
 
 RegexpEventHandler = Callable[
     [dict[str, str], logging.LogRecord], tuple[str, dict[str, Any]]
 ]
 
 
-def random_valid_identifier() -> str:
+def _random_valid_identifier() -> str:
     id = f"_{secrets.token_hex(8)}"
     assert id.isidentifier()
     return id
@@ -38,7 +38,7 @@ class _RegexpEventParser:
         event_map = {}
         for event_id, (event_pattern, event_handler) in event_handlers.items():
             group_map = {
-                group: random_valid_identifier()
+                group: _random_valid_identifier()
                 for group in self._GROUP_PATTERN.findall(event_pattern)
             }
 
@@ -80,7 +80,7 @@ class RegexpEventParser:
         self, pattern: str
     ) -> Callable[[RegexpEventHandler], RegexpEventHandler]:
         def decorator(eh: RegexpEventHandler) -> RegexpEventHandler:
-            self._event_handlers[random_valid_identifier()] = (pattern, eh)
+            self._event_handlers[_random_valid_identifier()] = (pattern, eh)
             return eh
 
         return decorator
