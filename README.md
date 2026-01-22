@@ -37,7 +37,7 @@ structlog.configure(
     ...,
 )
 
-l2sl.configure_stdlib_logging()
+l2sl.configure_stdlib_log_forwarding()
 ```
 
 ## How do I learn more?

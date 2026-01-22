@@ -1,9 +1,11 @@
+__all__ = ["StdlibRecordParser"]
+
 import logging
 from collections.abc import Mapping
 from typing import Any
 
-from ._parsers import Parser, builtin_parsers
-from ._utils import LoggerSelector, default_fallback_parser
+from ._parsers import Parser, builtin_parsers, default_fallback_parser
+from ._select import LoggerSelector
 
 
 class StdlibRecordParser:

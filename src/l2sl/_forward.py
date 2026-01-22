@@ -1,20 +1,21 @@
+__all__ = ["configure_stdlib_log_forwarding"]
+
 import logging
 import logging.config
-from collections.abc import Collection
 
 import structlog
 
-from ._utils import LoggerSelector
+from ._filter import RecordFilter, SimpleRecordFilter
 
 
-class RecordForwarder(logging.Handler):
-    def __init__(self, *, forward: Collection[str]) -> None:
+class _RecordForwarder(logging.Handler):
+    def __init__(self, *, record_filter: RecordFilter) -> None:
         super().__init__()
-        self._logger_selector = LoggerSelector(forward)
+        self._record_filter = record_filter
         self._logger = structlog.get_logger()
 
     def emit(self, record: logging.LogRecord) -> None:
-        if self._logger_selector(record.name):
+        if self._record_filter(record):
             self._logger.log(
                 record.levelno,
                 record.msg,
@@ -23,42 +24,19 @@ class RecordForwarder(logging.Handler):
             )
 
 
-STDLIB_LOGGERS = ["asyncio", "concurrent"]
-
-
-def configure_stdlib_logging(
-    *, include: Collection[str] | None = None, exclude: Collection[str] | None = None
-) -> list[str]:
-    if include is not None and exclude is not None:
-        raise ValueError("included and excluded cannot be passed at the same time")
-
-    available = set(logging.root.manager.loggerDict.keys())
-    for name in available:
-        logger = logging.getLogger(name)
-        logger.handlers.clear()
-        logger.filters.clear()
-        logger.propagate = True
-
-    if include is not None:
-        forward = include
-    else:
-        if exclude is None:
-            exclude = STDLIB_LOGGERS
-        forward = available - set(exclude)
-    forward = sorted(forward)
-
+def configure_stdlib_log_forwarding(
+    *, record_filter: RecordFilter = SimpleRecordFilter.default(level="info")
+) -> None:
     logging.config.dictConfig(
         {
             "version": 1,
             "disable_existing_loggers": False,
             "handlers": {
                 "structlog": {
-                    "class": "l2sl._forward.RecordForwarder",
-                    "forward": forward,
+                    "class": "l2sl._forward._RecordForwarder",
+                    "record_filter": record_filter,
                 }
             },
             "loggers": {"root": {"level": "NOTSET", "handlers": ["structlog"]}},
         }
     )
-
-    return forward
