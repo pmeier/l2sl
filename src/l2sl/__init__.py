@@ -9,7 +9,7 @@ except ModuleNotFoundError:
     __version__ = "UNKNOWN"
 
 from ._filter import (
-    LogLevel,
+    # LogLevel,
     RecordFilter,
     SimpleRecordFilter,
     StdlibLogLevel,
@@ -17,6 +17,7 @@ from ._filter import (
     StructlogLogLevel,
 )
 from ._forward import configure_stdlib_log_forwarding
+from ._log_level import LogLevel
 from ._parsers import (
     Parser,
     RegexpEventHandler,
