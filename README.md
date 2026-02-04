@@ -19,23 +19,11 @@ You need `l2sl` if
 
 ## How do I get started?
 
-In the most minimal setup, you only need change two things:
-
-1. Add the `l2sl.StdlibRecordParser()` to the list of `processors` in
-   `structlog.configure`.
-2. Call `l2sl.configure_stdlib_logging()` after you are done configuring `structlog`.
+In the most minimal setup, you only need to do add one thing to your logging setup,
+preferably after the `structlog.configure()` call:
 
 ```python
 import l2sl
-import structlog
-
-structlog.configure(
-    processors=[
-        l2sl.StdlibRecordParser(),
-        ...,
-    ],
-    ...,
-)
 
 l2sl.configure_stdlib_log_forwarding()
 ```

@@ -8,6 +8,7 @@ except ModuleNotFoundError:
 
     __version__ = "UNKNOWN"
 
+from ._builtin_parsers import builtin_parsers
 from ._forward import configure_stdlib_log_forwarding
 from ._log_level import (
     LogLevel,
@@ -15,14 +16,12 @@ from ._log_level import (
     StdlibLogLevelName,
     StructlogLogLevelName,
 )
-from ._parsers import (
+from ._parse import (
     Parser,
     RegexpEventHandler,
     RegexpEventParser,
-    builtin_parsers,
     default_fallback_parser,
 )
-from ._process import StdlibRecordParser
 
 __all__ = [
     "LogLevel",
@@ -36,5 +35,4 @@ __all__ = [
     "default_fallback_parser",
     "RegexpEventHandler",
     "RegexpEventParser",
-    "StdlibRecordParser",
 ]
