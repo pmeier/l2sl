@@ -43,6 +43,13 @@ def configure_stdlib_log_forwarding(
                 f"but {logger_factory=} is configured"
             )
 
+    # Clear all existing handlers so nothing leaks from a previous config. logging.config.dictConfig only clears root's
+    # handlers; non-root loggers keep theirs unless they're explicitly listed in the new config.
+    # disable_existing_loggers cannot be used as it also clears the loggers and not just the handlers.
+    for obj in logging.root.manager.loggerDict.values():
+        if isinstance(obj, logging.Logger):
+            obj.handlers.clear()
+    logging.root.handlers.clear()
     logging.config.dictConfig(
         {
             "version": 1,
