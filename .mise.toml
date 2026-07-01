@@ -1,3 +1,2 @@
 [tools]
-pre-commit = "latest"
-uv = "latest"
+uv = "0.6.8"
