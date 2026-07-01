@@ -49,6 +49,7 @@ def configure_stdlib_log_forwarding(
     for obj in logging.root.manager.loggerDict.values():
         if isinstance(obj, logging.Logger):
             obj.handlers.clear()
+            obj.propagate = True
     logging.root.handlers.clear()
     logging.config.dictConfig(
         {
