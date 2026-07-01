@@ -12,8 +12,7 @@ def test_configure_stdlib_log_forwarding_clears_old_handlers():
     bar = logging.getLogger("foo.bar")
     baz = logging.getLogger("baz")
 
-    old_handler = logging.StreamHandler()
-    foo.addHandler(old_handler)
+    foo.addHandler(logging.StreamHandler())
     bar.addHandler(logging.StreamHandler())
     baz.addHandler(logging.StreamHandler())
     logging.root.addHandler(logging.StreamHandler())
