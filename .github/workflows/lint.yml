@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
@@ -17,7 +17,7 @@ jobs:
         uses: ./.github/actions/setup-env
 
       - name: Restore pre-commit cache
-        uses: actions/cache@v3
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -25,11 +25,11 @@ jobs:
             pre-commit
 
       - name: Setup lint utilities
-        run: uv run pre-commit install-hooks
+        run: pre-commit install-hooks
 
       - name: Run format and lint checks
         run: |
-          uv run pre-commit run \
+          pre-commit run \
             --show-diff-on-failure --color=always \
             --files $(git diff origin/${{ github.base_ref }} --name-only)
 
@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup environment
         uses: ./.github/actions/setup-env
