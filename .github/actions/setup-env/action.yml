@@ -3,7 +3,7 @@ description: "Setup environment"
 
 inputs:
   python-version:
-    description: Chart version
+    description: Python version to install
     default: "3.11"
 
 runs:
