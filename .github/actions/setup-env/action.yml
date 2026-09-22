@@ -15,7 +15,7 @@ runs:
 
     - name: Install Python
       shell: bash
-      run: uv python install ${{ matrix.python-version }}
+      run: uv python install --default ${{ matrix.python-version }}
 
     - name: Install environment 
       shell: bash
