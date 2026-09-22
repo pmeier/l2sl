@@ -10,7 +10,9 @@ build:
     post_install:
       - pip install uv
       - UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH uv sync --link-mode=copy --frozen
-
-mkdocs:
-  configuration: mkdocs.yml
-  fail_on_warning: true
+    build:
+      html:
+        - UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH uv run zensical build -s
+    post_build:
+      - mkdir -p $READTHEDOCS_OUTPUT/html/
+      - cp --recursive site/* $READTHEDOCS_OUTPUT/html/
