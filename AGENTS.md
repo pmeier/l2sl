@@ -10,7 +10,7 @@ structured events via parsers.
 - Package: `src/l2sl/` (src layout), distributed on PyPI as `l2sl`
 - Supported Python: 3.10+ (`.python-version` pins 3.10 for local dev)
 - Runtime deps: `structlog`, `typing-extensions` (only for Python < 3.11)
-- Docs: `docs/` + `mkdocs.yml`, published at https://l2sl.readthedocs.io/en/stable/
+- Docs: `docs/` + `zensical.toml`, published at https://l2sl.readthedocs.io/en/stable/
 
 Key entry points (see `src/l2sl/__init__.py`):
 
@@ -35,7 +35,7 @@ commands. The virtualenv lives in `.venv/`.
 | Type checking                | `uv run mypy`                                                      |
 | Format + lint (staged files) | `uv run pre-commit run --all-files`                                |
 | Build distributions          | `uv build`                                                         |
-| Docs locally                 | `uv run mkdocs serve`                                              |
+| Docs locally                 | `uv run zensical serve`                                            |
 
 ## Code style
 
