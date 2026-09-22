@@ -13,11 +13,9 @@ runs:
     - name: Setup mise
       uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
 
-    - name: Install Python
+    - name: Pin Python
       shell: bash
-      run: |
-        uv python install ${{ matrix.python-version }}
-        uv python pin ${{ matrix.python-version }}
+      run: uv python pin ${{ matrix.python-version }}
 
     - name: Install environment 
       shell: bash
