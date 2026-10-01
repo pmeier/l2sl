@@ -14,14 +14,32 @@ except (ImportError, AttributeError):
     _PYDANTIC_2_AVAILABLE = False
 
 LogLevelNumber = Literal[0, 10, 20, 30, 40, 50]
+"""Numeric log levels used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels)."""
 StdlibLogLevelName = Literal["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+"""Upper-case level names used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels)."""
 StructlogLogLevelName = Literal[
     "notset", "debug", "info", "warning", "warn", "error", "exception", "critical"
 ]
+"""Lower-case level names recognized by structlog."""
 
 
 @functools.total_ordering
 class LogLevel:
+    """A log level that bridges stdlib [logging][] and [structlog][] naming schemes.
+
+    Instances can be created from a level number (`20`), a stdlib name
+    (`"INFO"`), or a [structlog][] name (`"info"`), and expose all three
+    representations. Levels compare by number and can also be compared directly
+    against raw numbers and names.
+
+    Args:
+        level: The level to convert. Aliases are resolved, so `"warn"` and
+            `"exception"` map to `WARNING` and `ERROR` respectively.
+
+    Raises:
+        ValueError: If `level` is not a known number or name.
+    """
+
     _NUMBER_TO_STDLIB_NAME: ClassVar[dict[LogLevelNumber, StdlibLogLevelName]] = {
         0: "NOTSET",
         10: "DEBUG",
@@ -77,14 +95,17 @@ class LogLevel:
 
     @property
     def number(self) -> LogLevelNumber:
+        """The numeric level used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels), for example `20`."""
         return self._number
 
     @property
     def stdlib_name(self) -> StdlibLogLevelName:
+        """The upper-case level name used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels), for example `"INFO"`."""
         return self._stdlib_name
 
     @property
     def structlog_name(self) -> StructlogLogLevelName:
+        """The lower-case level name used by [structlog][], for example `"info"`."""
         return self._structlog_name
 
     def __eq__(self, other: Any) -> bool:

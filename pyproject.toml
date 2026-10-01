@@ -50,7 +50,8 @@ local_scheme = "node-and-date"
 select = [
     "E",
     "F",
-    "I001"
+    "I001",
+    "D"
 ]
 
 ignore = [
@@ -58,7 +59,18 @@ ignore = [
     "E501",
     # Ambigiuous variable name
     "E741",
+    # Magic methods like __eq__ and __str__ do not need docstrings
+    "D105",
+    # __init__ docstrings are merged into the class docstring
+    "D107",
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Test functions are self-describing via their names; no docstrings needed
+"tests/*" = ["D1"]
 
 [tool.pytest]
 minversion = "9.0"

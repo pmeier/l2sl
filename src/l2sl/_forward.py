@@ -18,6 +18,29 @@ def configure_stdlib_log_forwarding(
     logger: FilteringBoundLogger | None = None,
     validate_structlog_config: bool | None = None,
 ) -> None:
+    """Configure stdlib [logging][] to forward all records into a [structlog][] pipeline.
+
+    Installs a forwarding handler on the root logger and clears all existing
+    handlers, so records emitted by any library are parsed into structured
+    events and logged through `logger`.
+
+    Args:
+        parsers: Mapping of logger names (for example `"uvicorn.error"`) to
+            the parser used for that logger and its children. Defaults to
+            [l2sl.builtin_parsers][].
+        fallback_parser: Parser used for records whose logger does not match any
+            entry in `parsers`. Defaults to [l2sl.default_fallback_parser][].
+        logger: Structlog logger the parsed events are logged with. Defaults to
+            [structlog.get_logger][].
+        validate_structlog_config: If `True`, check that structlog is
+            configured in a way that is compatible with l2sl. If `None`
+            (default), the check runs whenever [structlog][] is already configured.
+
+    Raises:
+        RuntimeError: If validation is enabled and [structlog][] is not configured,
+            or is configured with [structlog.stdlib.LoggerFactory][], which
+            is incompatible with l2sl.
+    """
     if parsers is None:
         parsers = builtin_parsers()
     if fallback_parser is None:
