@@ -1,0 +1,37 @@
+[project]
+site_name = "l2sl"
+repo_url = "https://github.com/pmeier/l2sl"
+copyright = "Copyright &copy; 2025 Philip Meier"
+watch = ["src/l2sl"]
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/l2sl"
+
+[project.theme]
+features = [
+  "content.code.copy",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.sections",
+  "navigation.top",
+  "search.highlight",
+]
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.mdx_truly_sane_lists]
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python]
+inventories = [
+  "https://docs.python.org/3/objects.inv",
+  "https://www.structlog.org/en/stable/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_source = false
+show_root_heading = true
+show_bases = false
+unwrap_annotated = true

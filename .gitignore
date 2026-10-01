@@ -13,6 +13,9 @@ build/
 dist/
 *.egg-info/
 
+# Docs build output
+site/
+
 # Tool caches
 .pytest_cache/
 .mypy_cache/
