@@ -11,7 +11,7 @@ You need `l2sl` if
 
 - you are using [`structlog`] as the logging library in your application,
 - you depend on third-party libraries, e.g.
-  [`uvicorn`](https://github.com/encode/uvicorn) or
+  [`uvicorn`](https://github.com/Kludex/uvicorn) or
   [`httpx`](https://github.com/encode/httpx), that use the `logging` module from the
   standard library for logging, and
 - you want the log records from the third-party libraries processed by the same
@@ -30,6 +30,6 @@ l2sl.configure_stdlib_log_forwarding()
 
 ## How do I learn more?
 
-Please have a look at the [documentation](https://l2sl.readthedocs.io/en/stable/).
+Please have a look at the [documentation](https://l2sl.readthedocs.io/stable/).
 
 [`structlog`]: https://www.structlog.org/
