@@ -21,6 +21,10 @@ import structlog
 from structlog.typing import EventDict, FilteringBoundLogger
 
 Parser = Callable[[logging.LogRecord], EventDict]
+"""Parses a stdlib [logging.LogRecord][] into a [structlog.typing.EventDict][].
+
+A parser may raise [structlog.exceptions.DropEvent][] to discard a record.
+"""
 
 _DEFAULT_RECORD_ATTRIBUTES = set(
     logging.LogRecord("", logging.DEBUG, "", 0, "", None, None).__dict__.keys()
@@ -34,6 +38,18 @@ def _extract_record_extra(record: logging.LogRecord) -> dict[str, Any]:
 
 
 def default_fallback_parser(record: logging.LogRecord) -> EventDict:
+    """Fallback parser that turns a [logging.LogRecord][] into a minimal [structlog.typing.EventDict][].
+
+    The formatted log message becomes the `event` key and any values passed
+    through the record's `extra` attribute are included. `exc_info` is
+    normalized to the tuple form [structlog][] expects.
+
+    Args:
+        record: The stdlib [logging.LogRecord][] to parse.
+
+    Returns:
+        The [structlog.typing.EventDict][] for the record.
+    """
     event_dict: dict[str, Any] = _extract_record_extra(record) | {
         "event": record.getMessage()
     }
@@ -115,9 +131,25 @@ class _LoggerResolver:
 
 
 RegexpEventHandler = Callable[[dict[str, str], logging.LogRecord], EventDict]
+"""Builds a [structlog.typing.EventDict][] from a matched log message.
+
+Handlers receive the named groups captured by the regexp as a dict, together
+with the original stdlib [logging.LogRecord][].
+"""
 
 
 class RegexpEventParser:
+    """A [l2sl.Parser][] that routes log messages to event handlers based on regexp matches.
+
+    Event handlers are registered with [l2sl.RegexpEventParser.register_event_handler][]. Before
+    the first call, all registered patterns are compiled into a single
+    alternation. Messages that match no pattern are passed to the fallback
+    parser.
+
+    Args:
+        fallback: Parser used when no registered pattern matches.
+    """
+
     def __init__(self, fallback: Parser = default_fallback_parser) -> None:
         self._event_handlers: dict[str, tuple[str, RegexpEventHandler]] = {}
         self._fallback = fallback
@@ -125,6 +157,18 @@ class RegexpEventParser:
     def register_event_handler(
         self, pattern: str
     ) -> Callable[[RegexpEventHandler], RegexpEventHandler]:
+        """Return a decorator that registers a [l2sl.RegexpEventHandler][] for a message pattern.
+
+        The pattern may contain named groups (`(?P<name>...)`); the captured
+        values are passed to the handler keyed by the group names.
+
+        Args:
+            pattern: Regular expression matched against the log message.
+
+        Returns:
+            A decorator that registers the wrapped event handler.
+        """
+
         def decorator(eh: RegexpEventHandler) -> RegexpEventHandler:
             self._event_handlers[_unique_regex_identifier()] = (pattern, eh)
             return eh
