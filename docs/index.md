@@ -17,4 +17,18 @@ You need `l2sl` if
 - you want the log records from the third-party libraries processed by the same
   [structlog] pipeline as your own log records.
 
+## Why not use structlog.stdlib?
+
+Because that is the opposite of [what you need](#why-do-i-need-it) if you have read
+until here.
+[structlog's standard library integration](https://www.structlog.org/en/stable/standard-library.html)
+helps integrating a [structlog] pipeline into an existing stdlib logging pipeline.
+`l2sl` let's you define the whole pipeline in [structlog] without the need to ever touch
+stdlib logging including for any third-party libraries outside of your control that use
+it.
+
+The two setups are mutually exclusive: `l2sl` rejects a [structlog] configuration that
+is configured for stdlib logging, since both want to own the output side of the
+pipeline.
+
 [structlog]: https://www.structlog.org/
