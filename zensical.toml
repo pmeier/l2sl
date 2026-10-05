@@ -21,6 +21,12 @@ features = [
 [project.markdown_extensions.admonition]
 [project.markdown_extensions.mdx_truly_sane_lists]
 
+# Defining markdown_extensions explicitly replaces zensical's defaults, so the
+# extensions for fenced code blocks and syntax highlighting must be listed here.
+[project.markdown_extensions.pymdownx.highlight]
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.superfences]
+
 [project.plugins.mkdocstrings]
 default_handler = "python"
 

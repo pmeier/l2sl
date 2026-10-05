@@ -9,7 +9,7 @@ structured events via parsers.
 
 - Package: `src/l2sl/` (src layout), distributed on PyPI as `l2sl`
 - Supported Python: 3.10+ (`.python-version` pins 3.10 for local dev)
-- Runtime deps: `structlog`, `typing-extensions` (only for Python < 3.11)
+- Runtime deps: `structlog`
 - Docs: `docs/` + `zensical.toml`, published at https://l2sl.readthedocs.io/stable/
 
 Key entry points (see `src/l2sl/__init__.py`):
@@ -19,7 +19,7 @@ Key entry points (see `src/l2sl/__init__.py`):
 - `l2sl.Parser` / `RegexpEventParser` / `RegexpEventHandler` — parsing machinery in
   `_parse.py`.
 - `l2sl.builtin_parsers` — per-library parsers in `src/l2sl/_builtin_parsers/` (uvicorn,
-  tornado, httpx, bokeh, panel, neo4j).
+  tornado, httpx, bokeh, panel).
 
 ## Tooling
 
@@ -40,8 +40,11 @@ commands. The virtualenv lives in `.venv/`.
 ## Code style
 
 - **Formatting**: `ruff format` (plus `prettier` for markdown/toml via pre-commit).
-- **Linting**: ruff with `E`, `F`, `I001` selected; `E501` (line length) and `E741`
-  ignored.
+- **Linting**: ruff with `E`, `F`, `I001`, `D` selected; `E501` (line length), `E741`
+  (ambiguous variable name), `D105` (magic method docstrings), and `D107` (`__init__`
+  docstrings; merge them into the class docstring) ignored. Docstrings use Google style
+  (`[tool.ruff.lint.pydocstyle] convention = "google"`); tests skip missing-docstring
+  rules via per-file-ignores.
 - **Typing**: mypy is strict for `src/l2sl` — `disallow_untyped_calls`,
   `disallow_untyped_defs`, `disallow_incomplete_defs`, `warn_unused_ignores`,
   `warn_return_any`. All public and private functions in the package need full

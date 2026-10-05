@@ -1,3 +1,5 @@
+"""l2sl: forward stdlib [logging][] records into a [structlog][] pipeline."""
+
 try:
     from ._version import __version__
 except ModuleNotFoundError:
