@@ -2,13 +2,15 @@ __all__ = ["configure_stdlib_log_forwarding"]
 
 import logging
 import logging.config
-from collections.abc import Mapping
+import uuid
+from collections.abc import Iterable, Mapping, MutableMapping
+from typing import Any
 
 import structlog
-from structlog.typing import FilteringBoundLogger
+from structlog.typing import EventDict, FilteringBoundLogger
 
 from ._builtin_parsers import builtin_parsers
-from ._parse import Parser, ResolvingParser, default_fallback_parser
+from ._parse import Parser, exc_to_exc_info, safe_fallback_parser
 
 
 def configure_stdlib_log_forwarding(
@@ -29,7 +31,7 @@ def configure_stdlib_log_forwarding(
             the parser used for that logger and its children. Defaults to
             [l2sl.builtin_parsers][].
         fallback_parser: Parser used for records whose logger does not match any
-            entry in `parsers`. Defaults to [l2sl.default_fallback_parser][].
+            entry in `parsers`. Defaults to [l2sl.safe_fallback_parser][].
         logger: Structlog logger the parsed events are logged with. Defaults to
             [structlog.get_logger][].
         validate_structlog_config: If `True`, check that structlog is
@@ -44,7 +46,7 @@ def configure_stdlib_log_forwarding(
     if parsers is None:
         parsers = builtin_parsers()
     if fallback_parser is None:
-        fallback_parser = default_fallback_parser
+        fallback_parser = safe_fallback_parser
     if logger is None:
         logger = structlog.get_logger()
 
@@ -81,9 +83,8 @@ def configure_stdlib_log_forwarding(
             "handlers": {
                 "l2sl": {
                     "()": _RecordForwarder,
-                    "parser": ResolvingParser(
-                        parsers=parsers, fallback=fallback_parser, logger=logger
-                    ),
+                    "parsers": parsers,
+                    "fallback_parser": fallback_parser,
                     "logger": logger,
                 }
             },
@@ -95,15 +96,104 @@ def configure_stdlib_log_forwarding(
 
 
 class _RecordForwarder(logging.Handler):
-    def __init__(self, parser: Parser, logger: FilteringBoundLogger) -> None:
+    def __init__(
+        self,
+        parsers: Mapping[str, Parser],
+        fallback_parser: Parser,
+        logger: FilteringBoundLogger,
+    ) -> None:
         super().__init__()
-        self._parser = parser
+        self._parsers = parsers
+        self._fallback_parser = fallback_parser
         self._logger = logger
+
+        self._logger_resolver = _LoggerResolver(self._parsers.keys())
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
-            event_dict = self._parser(record)
+            event_dict = self._parse(record)
         except structlog.exceptions.DropEvent:
             return
 
         self._logger.log(record.levelno, event_dict.pop("event", ""), **event_dict)
+
+    def _parse(self, record: logging.LogRecord) -> EventDict:
+        logger = record.name
+        resolved_logger = self._logger_resolver(logger)
+        parser = (
+            self._parsers[resolved_logger]
+            if resolved_logger is not None
+            else self._fallback_parser
+        )
+
+        try:
+            event_dict = parser(record)
+        except structlog.exceptions.DropEvent:
+            raise
+        except Exception as exc:
+            event_dict = self._safe_fallback_event_dict(
+                record, reason="failed to parse", exc_info=exc_to_exc_info(exc)
+            )
+
+        if not isinstance(event_dict, MutableMapping):
+            event_dict = self._safe_fallback_event_dict(
+                record,
+                reason="parser did not return a mutable mapping",
+                returned_type=type(event_dict).__name__,
+            )
+
+        # "level" is a reserved key when the event_dict gets logged and cannot be overridden
+        if "level" in event_dict:
+            event_dict = self._safe_fallback_event_dict(
+                record,
+                reason="parser returned reserved key 'level'",
+                returned_level=event_dict["level"],
+            )
+
+        event_dict["logger"] = logger
+        return event_dict
+
+    def _safe_fallback_event_dict(
+        self, record: logging.LogRecord, *, reason: str, **kwargs: Any
+    ) -> EventDict:
+        l2sl_record_id = str(uuid.uuid4())
+        self._logger.error(
+            "using safe fallback parser",
+            logger="l2sl",
+            l2sl_record_id=l2sl_record_id,
+            reason=reason,
+            **kwargs,
+        )
+
+        event_dict = safe_fallback_parser(record)
+        event_dict["l2sl_record_id"] = l2sl_record_id
+        return event_dict
+
+
+class _LoggerResolver:
+    def __init__(self, available_loggers: Iterable[str]) -> None:
+        self._available_loggers = [l.split(".") for l in available_loggers]
+        self._cache: dict[str, str | None] = {}
+
+    def __call__(self, logger: str) -> str | None:
+        if logger in self._cache:
+            return self._cache[logger]
+
+        resolved = self._resolve(logger)
+        self._cache[logger] = resolved
+        return resolved
+
+    def _resolve(self, logger: str) -> str | None:
+        ls = logger.split(".")
+        applicable_loggers = sorted(
+            (
+                l
+                for l in self._available_loggers
+                if len(ls) >= len(l) and ls[: len(l)] == l
+            ),
+            key=len,
+        )
+        if not applicable_loggers:
+            return None
+
+        return ".".join(applicable_loggers[-1])
