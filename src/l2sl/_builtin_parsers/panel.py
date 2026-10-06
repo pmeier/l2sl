@@ -16,9 +16,7 @@ def session(groups: dict[str, str], record: logging.LogRecord) -> EventDict:
 panel_viewable = register_builtin_parser(RegexpEventParser(), logger="panel.viewable")
 
 
-@panel_viewable.register_event_handler(
-    r"Session \d+ (?P<event>(received|finished processing) events)"
-)
+@panel_viewable.register_event_handler(r"Session \d+ (?P<event>(received|finished processing) events)")
 def handler(groups: dict[str, str], record: logging.LogRecord) -> EventDict:
     assert record.args is not None
     session_id, events = record.args

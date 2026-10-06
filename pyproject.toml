@@ -47,6 +47,9 @@ write_to = "src/l2sl/_version.py"
 version_scheme = "release-branch-semver"
 local_scheme = "node-and-date"
 
+[tool.ruff]
+line-length = 120
+
 [tool.ruff.lint]
 select = [
     "E",
@@ -56,8 +59,6 @@ select = [
 ]
 
 ignore = [
-    # Ignore line too long since ruff will fix everything that is fixable
-    "E501",
     # Ambigiuous variable name
     "E741",
     # Magic methods like __eq__ and __str__ do not need docstrings

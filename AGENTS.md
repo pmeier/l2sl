@@ -2,9 +2,8 @@
 
 ## Project overview
 
-`l2sl` ("logging to structured logging") is a small Python library that forwards
-`logging` (stdlib) records from third-party libraries into a
-[`structlog`](https://www.structlog.org/) pipeline and converts their text messages into
+`l2sl` ("logging to structured logging") is a small Python library that forwards `logging` (stdlib) records from
+third-party libraries into a [`structlog`](https://www.structlog.org/) pipeline and converts their text messages into
 structured events via parsers.
 
 - Package: `src/l2sl/` (src layout), distributed on PyPI as `l2sl`
@@ -14,17 +13,15 @@ structured events via parsers.
 
 Key entry points (see `src/l2sl/__init__.py`):
 
-- `l2sl.configure_stdlib_log_forwarding()` — installs the `_RecordForwarder` handler on
-  the root logger and clears existing handlers.
-- `l2sl.Parser` / `RegexpEventParser` / `RegexpEventHandler` — parsing machinery in
-  `_parse.py`.
-- `l2sl.builtin_parsers` — per-library parsers in `src/l2sl/_builtin_parsers/` (uvicorn,
-  tornado, httpx, bokeh, panel).
+- `l2sl.configure_stdlib_log_forwarding()` — installs the `_RecordForwarder` handler on the root logger and clears
+  existing handlers.
+- `l2sl.Parser` / `RegexpEventParser` / `RegexpEventHandler` — parsing machinery in `_parse.py`.
+- `l2sl.builtin_parsers` — per-library parsers in `src/l2sl/_builtin_parsers/` (uvicorn, tornado, httpx, bokeh, panel).
 
 ## Tooling
 
-Everything runs through `uv` (pinned via `.mise.toml`). Use `uv run <tool>` for all
-commands. The virtualenv lives in `.venv/`.
+Everything runs through `uv` (pinned via `.mise.toml`). Use `uv run <tool>` for all commands. The virtualenv lives in
+`.venv/`.
 
 | Task                         | Command                                                            |
 | ---------------------------- | ------------------------------------------------------------------ |
@@ -40,29 +37,24 @@ commands. The virtualenv lives in `.venv/`.
 ## Code style
 
 - **Formatting**: `ruff format` (plus `prettier` for markdown/toml via pre-commit).
-- **Linting**: ruff with `E`, `F`, `I001`, `D` selected; `E501` (line length), `E741`
-  (ambiguous variable name), `D105` (magic method docstrings), and `D107` (`__init__`
-  docstrings; merge them into the class docstring) ignored. Docstrings use Google style
-  (`[tool.ruff.lint.pydocstyle] convention = "google"`); tests skip missing-docstring
-  rules via per-file-ignores.
-- **Typing**: mypy is strict for `src/l2sl` — `disallow_untyped_calls`,
-  `disallow_untyped_defs`, `disallow_incomplete_defs`, `warn_unused_ignores`,
-  `warn_return_any`. All public and private functions in the package need full
-  annotations. The package ships `py.typed`.
-- Version is managed by `setuptools_scm`; `src/l2sl/_version.py` is generated — never
-  edit it by hand.
+- **Linting**: ruff with `E`, `F`, `I001`, `D` selected; `E501` (line length), `E741` (ambiguous variable name), `D105`
+  (magic method docstrings), and `D107` (`__init__` docstrings; merge them into the class docstring) ignored. Docstrings
+  use Google style (`[tool.ruff.lint.pydocstyle] convention = "google"`); tests skip missing-docstring rules via
+  per-file-ignores.
+- **Typing**: mypy is strict for `src/l2sl` — `disallow_untyped_calls`, `disallow_untyped_defs`,
+  `disallow_incomplete_defs`, `warn_unused_ignores`, `warn_return_any`. All public and private functions in the package
+  need full annotations. The package ships `py.typed`.
+- Version is managed by `setuptools_scm`; `src/l2sl/_version.py` is generated — never edit it by hand.
 
 ## Tests
 
-- Location: `tests/`, mirroring the module under test (`test_forward.py` →
-  `_forward.py`, etc.).
-- `filterwarnings = ["error"]` (except `ResourceWarning`): any warning raised during a
-  test fails the run. `xfail_strict = true`.
-- Tests may poke at private APIs (e.g. `l2sl._forward._RecordForwarder`); this is fine
-  internally, but public behavior changes should be reflected in `__all__` and the docs.
+- Location: `tests/`, mirroring the module under test (`test_forward.py` → `_forward.py`, etc.).
+- `filterwarnings = ["error"]` (except `ResourceWarning`): any warning raised during a test fails the run.
+  `xfail_strict = true`.
+- Tests may poke at private APIs (e.g. `l2sl._forward._RecordForwarder`); this is fine internally, but public behavior
+  changes should be reflected in `__all__` and the docs.
 
 ## CI expectations
 
-GitHub Actions runs on PRs: `lint.yml` (pre-commit on changed files + mypy), `test.yml`
-(pytest with coverage on Ubuntu/Windows/macOS, Python 3.11–3.14), `build.yml`
-(`uv build`). Code must pass all of these before a PR is ready.
+GitHub Actions runs on PRs: `lint.yml` (pre-commit on changed files + mypy), `test.yml` (pytest with coverage on
+Ubuntu/Windows/macOS, Python 3.11–3.14), `build.yml` (`uv build`). Code must pass all of these before a PR is ready.
