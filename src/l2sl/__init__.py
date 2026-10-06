@@ -18,12 +18,7 @@ from ._log_level import (
     StdlibLogLevelName,
     StructlogLogLevelName,
 )
-from ._parse import (
-    Parser,
-    RegexpEventHandler,
-    RegexpEventParser,
-    default_fallback_parser,
-)
+from ._parse import Parser, RegexpEventHandler, RegexpEventParser, safe_fallback_parser
 
 __all__ = [
     "LogLevel",
@@ -34,7 +29,7 @@ __all__ = [
     "configure_stdlib_log_forwarding",
     "Parser",
     "builtin_parsers",
-    "default_fallback_parser",
+    "safe_fallback_parser",
     "RegexpEventHandler",
     "RegexpEventParser",
 ]

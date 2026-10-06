@@ -14,13 +14,13 @@ authors = [
 ]
 readme = "README.md"
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
     "structlog>=25.2.0",
@@ -34,6 +34,7 @@ dev = [
     "pydantic>=2",
     "pytest>=9",
     "pytest-coverage>=0.0",
+    "pytest-mock>=3.16.0",
     "zensical>=0.0.64",
 ]
 
@@ -46,6 +47,9 @@ write_to = "src/l2sl/_version.py"
 version_scheme = "release-branch-semver"
 local_scheme = "node-and-date"
 
+[tool.ruff]
+line-length = 120
+
 [tool.ruff.lint]
 select = [
     "E",
@@ -55,8 +59,6 @@ select = [
 ]
 
 ignore = [
-    # Ignore line too long since ruff will fix everything that is fixable
-    "E501",
     # Ambigiuous variable name
     "E741",
     # Magic methods like __eq__ and __str__ do not need docstrings

@@ -16,14 +16,10 @@ def register_builtin_parser(parser: TParser, /, *, logger: str) -> TParser: ...
 
 
 @overload
-def register_builtin_parser(
-    parser: None = None, /, *, logger: str
-) -> Callable[[TParser], TParser]: ...
+def register_builtin_parser(parser: None = None, /, *, logger: str) -> Callable[[TParser], TParser]: ...
 
 
-def register_builtin_parser(
-    parser: TParser | None = None, /, *, logger: str
-) -> TParser | Callable[[TParser], TParser]:
+def register_builtin_parser(parser: TParser | None = None, /, *, logger: str) -> TParser | Callable[[TParser], TParser]:
     """Register a parser as a builtin parser for a logger.
 
     Can be used directly or as a decorator.

@@ -15,11 +15,11 @@ except (ImportError, AttributeError):
 
 LogLevelNumber = Literal[0, 10, 20, 30, 40, 50]
 """Numeric log levels used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels)."""
+
 StdlibLogLevelName = Literal["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 """Upper-case level names used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels)."""
-StructlogLogLevelName = Literal[
-    "notset", "debug", "info", "warning", "warn", "error", "exception", "critical"
-]
+
+StructlogLogLevelName = Literal["notset", "debug", "info", "warning", "warn", "error", "exception", "critical"]
 """Lower-case level names recognized by structlog."""
 
 
@@ -27,14 +27,13 @@ StructlogLogLevelName = Literal[
 class LogLevel:
     """A log level that bridges stdlib [logging][] and [structlog][] naming schemes.
 
-    Instances can be created from a level number (`20`), a stdlib name
-    (`"INFO"`), or a [structlog][] name (`"info"`), and expose all three
-    representations. Levels compare by number and can also be compared directly
-    against raw numbers and names.
+    Instances can be created from a level number (`20`), a stdlib name (`"INFO"`), or a [structlog][] name (`"info"`),
+    and expose all three representations. Levels compare by number and can also be compared directly against raw numbers
+    and names.
 
     Args:
-        level: The level to convert. Aliases are resolved, so `"warn"` and
-            `"exception"` map to `WARNING` and `ERROR` respectively.
+        level: The level to convert. Aliases are resolved, so `"warn"` and "exception"` map to `WARNING` and `ERROR`
+        respectively.
 
     Raises:
         ValueError: If `level` is not a known number or name.
@@ -70,20 +69,14 @@ class LogLevel:
         "CRITICAL": "critical",
     }
 
-    def __init__(
-        self, level: LogLevelNumber | StdlibLogLevelName | StructlogLogLevelName
-    ) -> None:
+    def __init__(self, level: LogLevelNumber | StdlibLogLevelName | StructlogLogLevelName) -> None:
         if (number := cast(LogLevelNumber, level)) in self._NUMBER_TO_STDLIB_NAME:
             stdlib_name = self._NUMBER_TO_STDLIB_NAME[number]
             structlog_name = self._STDLIB_NAME_TO_STRUCTLOG_NAME[stdlib_name]
-        elif (
-            stdlib_name := cast(StdlibLogLevelName, level)
-        ) in self._STDLIB_NAME_TO_NUMBER:
+        elif (stdlib_name := cast(StdlibLogLevelName, level)) in self._STDLIB_NAME_TO_NUMBER:
             number = self._STDLIB_NAME_TO_NUMBER[stdlib_name]
             structlog_name = self._STDLIB_NAME_TO_STRUCTLOG_NAME[stdlib_name]
-        elif (
-            structlog_name := cast(StructlogLogLevelName, level)
-        ) in self._STRUCTLOG_NAME_TO_STDLIB_NAME:
+        elif (structlog_name := cast(StructlogLogLevelName, level)) in self._STRUCTLOG_NAME_TO_STDLIB_NAME:
             stdlib_name = self._STRUCTLOG_NAME_TO_STDLIB_NAME[structlog_name]
             number = self._STDLIB_NAME_TO_NUMBER[stdlib_name]
         else:
@@ -95,12 +88,12 @@ class LogLevel:
 
     @property
     def number(self) -> LogLevelNumber:
-        """The numeric level used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels), for example `20`."""
+        """Numeric stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels) level, e.g. `20`."""
         return self._number
 
     @property
     def stdlib_name(self) -> StdlibLogLevelName:
-        """The upper-case level name used by stdlib [logging](https://docs.python.org/3/library/logging.html#logging-levels), for example `"INFO"`."""
+        """Uppercase [logging](https://docs.python.org/3/library/logging.html#logging-levels) name, e.g. `INFO`."""
         return self._stdlib_name
 
     @property
@@ -132,7 +125,9 @@ class LogLevel:
         return self.stdlib_name
 
     def __repr__(self) -> str:
-        return f"{type(self)}(number={self.number}, stdlib_name={self.stdlib_name}, structlog_name={self.structlog_name})"
+        return (
+            f"{type(self)}(number={self.number}, stdlib_name={self.stdlib_name}, structlog_name={self.structlog_name})"
+        )
 
     def __int__(self) -> int:
         return self.number
