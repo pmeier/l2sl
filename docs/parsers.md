@@ -81,6 +81,37 @@ Two more things a parser can do:
 - If a parser raises any other exception, the record is not lost: it goes to the fallback parser, and the failure itself
   is logged under the `l2sl` logger with a `l2sl_parser_error_id` (a UUID) that links the error to the record.
 
+### Unpacking format arguments
+
+A parser that reads `record.args` positionally should not unpack it directly: a library that changes one of its log
+calls turns into a bare `ValueError: not enough values to unpack` in the middle of the pipeline.
+[l2sl.expect_tuple_args][] checks the shape first and returns the arguments, raising [l2sl.ParserArgsError][] when they
+differ:
+
+```python
+import logging
+
+from structlog.typing import EventDict
+
+from l2sl import expect_tuple_args
+
+
+def my_lib_parser(record: logging.LogRecord) -> EventDict:
+    method, url = expect_tuple_args(record, 2)
+    return {"event": "request", "method": method, "url": url}
+```
+
+The failure message names the logger and both counts, and the error carries the offending record on its `record`
+attribute:
+
+```
+Expected 2 positional format arguments for logger 'my_lib', got 3: ('GET', 'http://x', 'extra')
+```
+
+Records that pass their arguments as a mapping (`logger.info("%(name)s", {...})`) have no positional shape, so they are
+reported as a mismatch instead of being converted. As with any other parser failure, the record still reaches the
+fallback parser and the message becomes the `reason` of the `using safe fallback parser` error log.
+
 ## Writing a regexp parser
 
 For libraries that log free-form text, [l2sl.RegexpEventParser][] dispatches on the message itself. Create one and

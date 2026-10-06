@@ -2,10 +2,12 @@ from __future__ import annotations
 
 __all__ = [
     "Parser",
-    "safe_fallback_parser",
+    "ParserArgsError",
     "RegexpEventParser",
     "RegexpEventHandler",
     "exc_to_exc_info",
+    "expect_tuple_args",
+    "safe_fallback_parser",
 ]
 
 import logging
@@ -13,6 +15,7 @@ import re
 import secrets
 import sys
 import warnings
+from collections.abc import Mapping
 from typing import Any, Callable, cast
 
 from structlog.typing import EventDict, ExcInfo
@@ -36,6 +39,63 @@ def exc_to_exc_info(exc_info: Any) -> ExcInfo:
 
 def _extract_record_extra(record: logging.LogRecord) -> dict[str, Any]:
     return {k: v for k, v in record.__dict__.items() if k not in _DEFAULT_RECORD_ATTRIBUTES}
+
+
+class ParserArgsError(ValueError):
+    """A record's format arguments do not match the shape a parser expects.
+
+    Raised by [l2sl.expect_tuple_args][] when `record.args` cannot be unpacked as expected. The forwarding machinery
+    catches this and reports the message as the reason for falling back, so a mismatched record degrades to the fallback
+    parser instead of getting lost behind a bare unpacking failure.
+
+    Args:
+        record: The record whose format arguments did not match.
+        message: Human-readable description of the mismatch.
+
+    Attributes:
+        record: The [logging.LogRecord][] that triggered the error.
+    """
+
+    def __init__(self, record: logging.LogRecord, message: str) -> None:
+        super().__init__(message)
+        self.record = record
+
+
+def expect_tuple_args(record: logging.LogRecord, expected: int) -> tuple[Any, ...]:
+    """Return `record.args` as a tuple of `expected` positional format arguments.
+
+    `record.args` is normalized only in so far as a record logged without arguments is treated as an empty
+    tuple. A record that carries its arguments as a mapping (the `logger.info("%(name)s", {...})` style, which
+    [logging][] unwraps out of the argument tuple) is never converted: it has no positional shape and is
+    reported as a mismatch.
+
+    Args:
+        record: The stdlib [logging.LogRecord][] whose format arguments to check.
+        expected: The number of positional format arguments the caller unpacks.
+
+    Returns:
+        The record's format arguments, guaranteed to hold exactly `expected` items.
+
+    Raises:
+        ParserArgsError: If the record uses dict-style (`%(name)s`) formatting, if its arguments are neither a
+            tuple nor absent, or if the number of arguments differs from `expected`.
+    """
+    args: Any = () if record.args is None else record.args
+    expected_args = f"Expected {expected} positional format argument(s) for logger {record.name!r}"
+
+    if isinstance(args, Mapping):
+        raise ParserArgsError(
+            record,
+            f"{expected_args}, but the record uses dict-style (%(name)s) formatting with keys {sorted(args)!r}",
+        )
+
+    if not isinstance(args, tuple):
+        raise ParserArgsError(record, f"{expected_args}, but its format arguments are of type {type(args).__name__}")
+
+    if len(args) != expected:
+        raise ParserArgsError(record, f"{expected_args}, got {len(args)}: {args!r}")
+
+    return args
 
 
 def safe_fallback_parser(record: logging.LogRecord) -> EventDict:

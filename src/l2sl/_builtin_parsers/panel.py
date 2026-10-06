@@ -2,7 +2,7 @@ import logging
 
 from structlog.typing import EventDict
 
-from .._parse import RegexpEventParser
+from .._parse import RegexpEventParser, expect_tuple_args
 from . import register_builtin_parser
 
 panel_io = register_builtin_parser(RegexpEventParser(), logger="panel.io")
@@ -18,6 +18,5 @@ panel_viewable = register_builtin_parser(RegexpEventParser(), logger="panel.view
 
 @panel_viewable.register_event_handler(r"Session \d+ (?P<event>(received|finished processing) events)")
 def handler(groups: dict[str, str], record: logging.LogRecord) -> EventDict:
-    assert record.args is not None
-    session_id, events = record.args
+    session_id, events = expect_tuple_args(record, 2)
     return {"event": groups["event"], "sesion_id": session_id, "events": events}
