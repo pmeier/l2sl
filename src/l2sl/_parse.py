@@ -8,11 +8,11 @@ __all__ = [
     "exc_to_exc_info",
 ]
 
-import functools
 import logging
 import re
 import secrets
 import sys
+import warnings
 from typing import Any, Callable, cast
 
 from structlog.typing import EventDict, ExcInfo
@@ -115,6 +115,7 @@ class RegexpEventParser:
 
     def __init__(self, fallback: Parser = safe_fallback_parser) -> None:
         self._event_handlers: dict[str, tuple[str, RegexpEventHandler]] = {}
+        self._parser: _RegexpEventParser | None = None
         self._fallback = fallback
 
     def register_event_handler(self, pattern: str) -> Callable[[RegexpEventHandler], RegexpEventHandler]:
@@ -128,19 +129,26 @@ class RegexpEventParser:
 
         Returns:
             A decorator that registers the wrapped event handler.
+
+        Raises:
+            RuntimeError: If the patterns were already compiled into the combined regexp, i.e. if records have
+                already been parsed. Registering late would silently have no effect, so this fails loudly.
         """
 
         def decorator(eh: RegexpEventHandler) -> RegexpEventHandler:
+            if self._parser is not None:
+                raise RuntimeError(
+                    "Cannot register an event handler after the parser has been compiled. All event handlers must be "
+                    "registered before the first record is parsed."
+                )
             self._event_handlers[_unique_regex_identifier()] = (pattern, eh)
             return eh
 
         return decorator
 
-    @functools.cached_property
-    def _parser(self) -> _RegexpEventParser:
-        return _RegexpEventParser(self._event_handlers, self._fallback)
-
     def __call__(self, record: logging.LogRecord) -> EventDict:
+        if self._parser is None:
+            self._parser = _RegexpEventParser(self._event_handlers, self._fallback)
         return self._parser(record)
 
 
@@ -150,7 +158,19 @@ class _RegexpEventParser:
         event_handlers: dict[str, tuple[str, RegexpEventHandler]],
         fallback: Parser,
     ) -> None:
-        self._pattern, self._event_map = self._compile(event_handlers)
+        self._pattern: re.Pattern[str] | None
+        if event_handlers:
+            self._pattern, self._event_map = self._compile(event_handlers)
+        else:
+            # Without handlers the combined regexp would compile to "()", which matches the empty prefix of every
+            # message and leaves the handler lookup without a match. Warn instead, since this is almost certainly
+            # not what the user wanted, and route everything to the fallback.
+            warnings.warn(
+                "RegexpEventParser has no registered event handlers: all records are routed to the fallback parser.",
+                stacklevel=3,  # _RegexpEventParser.__init__ -> RegexpEventParser.__call__ -> user code
+            )
+            self._pattern, self._event_map = None, {}
+
         self._fallback = fallback
 
     _GROUP_PATTERN = re.compile(r"\(\?P<(?P<group>\w+)>")
@@ -174,6 +194,9 @@ class _RegexpEventParser:
         return re.compile(pattern), event_map
 
     def __call__(self, record: logging.LogRecord) -> EventDict:
+        if self._pattern is None:
+            return self._fallback(record)
+
         event = record.getMessage()
         match = self._pattern.match(event)
         if not match:
