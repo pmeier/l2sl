@@ -5,19 +5,16 @@ import sys
 import pytest
 from structlog.exceptions import DropEvent
 
-from l2sl._parse import RegexpEventParser, exc_to_exc_info, safe_fallback_parser
-
-
-def make_record(
-    name: str = "some.lib",
-    msg: str = "hello",
-    args: tuple | None = None,
-    **extra,
-) -> logging.LogRecord:
-    record = logging.LogRecord(name, logging.INFO, __file__, 1, msg, args, None)
-    for key, value in extra.items():
-        setattr(record, key, value)
-    return record
+from l2sl._builtin_parsers.uvicorn import uvicorn_access
+from l2sl._forward import _RecordForwarder
+from l2sl._parse import (
+    ParserArgsError,
+    RegexpEventParser,
+    exc_to_exc_info,
+    expect_tuple_args,
+    safe_fallback_parser,
+)
+from tests.utils import make_record
 
 
 def test_clean_record_has_no_error_key():
@@ -122,6 +119,88 @@ def test_exc_to_exc_info_falls_back_to_currently_handled_exception(fallback_inpu
     except ValueError:
         expected = sys.exc_info()
         assert exc_to_exc_info(fallback_input) == expected
+
+
+def test_expect_tuple_args_returns_the_tuple_of_expected_length():
+    assert expect_tuple_args(make_record(args=("a", "b")), 2) == ("a", "b")
+
+
+def test_expect_tuple_args_treats_absent_args_as_an_empty_tuple():
+    assert expect_tuple_args(make_record(args=None), 0) == ()
+
+
+def test_expect_tuple_args_reports_logger_and_counts_for_too_few_args():
+    with pytest.raises(
+        ParserArgsError,
+        match=r"Expected 3 positional format argument\(s\) for logger 'some\.lib', got 1: \('a',\)",
+    ):
+        expect_tuple_args(make_record(args=("a",)), 3)
+
+
+def test_expect_tuple_args_reports_logger_and_counts_for_too_many_args():
+    with pytest.raises(
+        ParserArgsError, match=r"Expected 1 positional format argument\(s\) for logger 'some\.lib', got 2"
+    ):
+        expect_tuple_args(make_record(args=("a", "b")), 1)
+
+
+def test_expect_tuple_args_reports_dict_style_args_as_such():
+    record = make_record(msg="%(a)s %(b)s", args={"a": 1, "b": 2})
+    with pytest.raises(ParserArgsError, match=r"dict-style \(%\(name\)s\) formatting with keys \['a', 'b'\]"):
+        expect_tuple_args(record, 2)
+
+
+def test_expect_tuple_args_reports_the_type_of_non_tuple_args():
+    with pytest.raises(ParserArgsError, match=r"format arguments are of type str"):
+        expect_tuple_args(make_record(args="solo"), 1)
+
+
+def test_parser_args_error_carries_the_offending_record():
+    record = make_record(name="some.lib", args=("a",))
+    with pytest.raises(ParserArgsError) as excinfo:
+        expect_tuple_args(record, 2)
+    assert excinfo.value.record is record
+
+
+def make_forwarder(mocker, fallback_parser):
+    fake = mocker.Mock()
+    return _RecordForwarder(parsers={}, fallback_parser=fallback_parser, logger=fake), fake
+
+
+def test_builtin_parser_mismatch_reason_reaches_safe_fallback(mocker):
+    handler, fake = make_forwarder(mocker, uvicorn_access)
+
+    handler.emit(make_record(name="uvicorn.access", msg="request %s", args=("GET",)))
+
+    assert fake.error.call_args.args == ("using safe fallback parser",)
+    error_kwargs = fake.error.call_args.kwargs
+    expected_reason = "Expected 5 positional format argument(s) for logger 'uvicorn.access', got 1: ('GET',)"
+    assert error_kwargs["reason"] == expected_reason
+    assert isinstance(error_kwargs["exc_info"][1], ParserArgsError)
+
+    assert fake.log.call_args.args[1] == "request GET"
+    assert fake.log.call_args.kwargs["l2sl_record_id"] == error_kwargs["l2sl_record_id"]
+    assert fake.log.call_args.kwargs["logger"] == "uvicorn.access"
+
+
+def test_builtin_parser_dict_style_mismatch_reaches_safe_fallback(mocker):
+    handler, fake = make_forwarder(mocker, uvicorn_access)
+
+    handler.emit(make_record(name="uvicorn.access", msg="%(m)s %(p)s", args={"m": "GET", "p": "/"}))
+
+    reason = fake.error.call_args.kwargs["reason"]
+    assert reason.endswith("dict-style (%(name)s) formatting with keys ['m', 'p']")
+    assert fake.log.call_args.args[1] == "GET /"
+
+
+def test_builtin_parser_with_matching_args_does_not_use_fallback(mocker):
+    handler, fake = make_forwarder(mocker, uvicorn_access)
+
+    handler.emit(make_record(name="uvicorn.access", args=("127.0.0.1", "GET", "/index", "1.1", 200)))
+
+    fake.error.assert_not_called()
+    assert fake.log.call_args.kwargs["status_code"] == 200
+    assert fake.log.call_args.kwargs["protocol"] == "HTTP/1.1"
 
 
 def test_matching_message_returns_handler_result():

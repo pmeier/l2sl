@@ -2,7 +2,7 @@ import logging
 
 from structlog.typing import EventDict
 
-from .._parse import RegexpEventParser
+from .._parse import RegexpEventParser, expect_tuple_args
 from . import register_builtin_parser
 
 bokeh_server_server = register_builtin_parser(RegexpEventParser(), logger="bokeh.server.server")
@@ -21,15 +21,13 @@ bokeh_server_tornado = register_builtin_parser(RegexpEventParser(), logger="boke
 
 @bokeh_server_tornado.register_event_handler(r"\[pid \d+\] \d+ clients connected")
 def clients(groups: dict[str, str], record: logging.LogRecord) -> EventDict:
-    assert record.args is not None
-    pid, number = record.args
+    pid, number = expect_tuple_args(record, 2)
     return {"event": "clients", "pid": pid, "number": number}
 
 
 @bokeh_server_tornado.register_event_handler(r"\[pid \d+\]\s+.*? has \d+ sessions with \d+ unused")
 def sessions(groups: dict[str, str], record: logging.LogRecord) -> EventDict:
-    assert record.args is not None
-    pid, endpoint, number, unused = record.args
+    pid, endpoint, number, unused = expect_tuple_args(record, 4)
     return {
         "event": "sessions",
         "pid": pid,

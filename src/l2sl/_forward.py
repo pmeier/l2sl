@@ -10,7 +10,7 @@ import structlog
 from structlog.typing import EventDict, FilteringBoundLogger
 
 from ._builtin_parsers import builtin_parsers
-from ._parse import Parser, exc_to_exc_info, safe_fallback_parser
+from ._parse import Parser, ParserArgsError, exc_to_exc_info, safe_fallback_parser
 
 
 def configure_stdlib_log_forwarding(
@@ -119,7 +119,11 @@ class _RecordForwarder(logging.Handler):
         except structlog.exceptions.DropEvent:
             raise
         except Exception as exc:
-            event_dict = self._safe_fallback_event_dict(record, reason="failed to parse", exc_info=exc_to_exc_info(exc))
+            event_dict = self._safe_fallback_event_dict(
+                record,
+                reason=str(exc) if isinstance(exc, ParserArgsError) else "failed to parse",
+                exc_info=exc_to_exc_info(exc),
+            )
 
         if not isinstance(event_dict, MutableMapping):
             event_dict = self._safe_fallback_event_dict(

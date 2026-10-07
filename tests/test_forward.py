@@ -5,10 +5,7 @@ import structlog
 
 import l2sl
 from l2sl._forward import _LoggerResolver, _RecordForwarder
-
-
-def make_record(name: str = "some.lib", msg: str = "hello") -> logging.LogRecord:
-    return logging.LogRecord(name, logging.INFO, __file__, 1, msg, None, None)
+from tests.utils import make_record
 
 
 def make_handler(mocker, parser=None, **kwargs):
@@ -143,12 +140,6 @@ def test_reserved_level_key_uses_safe_fallback_with_correlated_error(mocker):
 
 
 def test_level_in_extra_end_to_end(mocker):
-    """``extra={"level": ...}`` is not reserved by stdlib logging and must not break forwarding.
-
-    The safe fallback parser handles the rename itself, so the notification is the
-    ``l2sl_safe_fallback_parser_errors`` marker on the logged event rather than a
-    separate forwarder error log.
-    """
     fake = mocker.Mock()
     l2sl.configure_stdlib_log_forwarding(
         parsers={},
