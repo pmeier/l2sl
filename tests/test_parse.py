@@ -131,13 +131,16 @@ def test_expect_tuple_args_treats_absent_args_as_an_empty_tuple():
 
 def test_expect_tuple_args_reports_logger_and_counts_for_too_few_args():
     with pytest.raises(
-        ParserArgsError, match=r"Expected 3 positional format arguments for logger 'some\.lib', got 1: \('a',\)"
+        ParserArgsError,
+        match=r"Expected 3 positional format argument\(s\) for logger 'some\.lib', got 1: \('a',\)",
     ):
         expect_tuple_args(make_record(args=("a",)), 3)
 
 
 def test_expect_tuple_args_reports_logger_and_counts_for_too_many_args():
-    with pytest.raises(ParserArgsError, match=r"Expected 1 positional format argument for logger 'some\.lib', got 2"):
+    with pytest.raises(
+        ParserArgsError, match=r"Expected 1 positional format argument\(s\) for logger 'some\.lib', got 2"
+    ):
         expect_tuple_args(make_record(args=("a", "b")), 1)
 
 
@@ -171,7 +174,7 @@ def test_builtin_parser_mismatch_reason_reaches_safe_fallback(mocker):
 
     assert fake.error.call_args.args == ("using safe fallback parser",)
     error_kwargs = fake.error.call_args.kwargs
-    expected_reason = "Expected 5 positional format arguments for logger 'uvicorn.access', got 1: ('GET',)"
+    expected_reason = "Expected 5 positional format argument(s) for logger 'uvicorn.access', got 1: ('GET',)"
     assert error_kwargs["reason"] == expected_reason
     assert isinstance(error_kwargs["exc_info"][1], ParserArgsError)
 

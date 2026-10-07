@@ -105,7 +105,7 @@ The failure message names the logger and both counts, and the error carries the 
 attribute:
 
 ```
-Expected 2 positional format arguments for logger 'my_lib', got 3: ('GET', 'http://x', 'extra')
+Expected 2 positional format argument(s) for logger 'my_lib', got 3: ('GET', 'http://x', 'extra')
 ```
 
 Records that pass their arguments as a mapping (`logger.info("%(name)s", {...})`) have no positional shape, so they are
